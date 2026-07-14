@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 node_modules
 /.pnp
@@ -36,7 +34,6 @@ yarn-error.log*
 # vercel
 .vercel
 
-
 # typescript
 *.tsbuildinfo
 next-env.d.ts
@@ -50,5 +47,35 @@ test
 prompt
 
 server.log
-# Skills directory
+
+# Skills directory (Z.ai internal — not part of the product)
 /skills/
+
+# Original Vite workspace (kept locally for reference, not pushed to GitHub)
+/workspace/
+
+# Upload folder (user-uploaded zips)
+/upload/
+
+# Tool results (internal scratch)
+/tool-results/
+
+# Download folder (generated zips)
+/download/
+
+# Z.ai dev scripts (sandbox infrastructure)
+/.zscripts/
+
+# Database
+/db/*.db
+/db/*.db-journal
+
+# Keepalive scripts (sandbox-only)
+/scripts/keepalive*.sh
+
+# OS / Editor
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
