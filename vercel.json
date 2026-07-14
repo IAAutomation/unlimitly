@@ -3,6 +3,5 @@
   "buildCommand": "next build",
   "devCommand": "next dev",
   "installCommand": "bun install",
-  "outputDirectory": ".next",
-  "cleanCrawl": true
+  "outputDirectory": ".next"
 }
