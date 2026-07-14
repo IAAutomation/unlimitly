@@ -12,4 +12,12 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
+  vite: {
+    server: {
+      // Z.ai preview gateway proxies to port 3000 — override the lovable default (8080)
+      port: 3000,
+      host: "0.0.0.0",
+    },
+  },
 });
+
