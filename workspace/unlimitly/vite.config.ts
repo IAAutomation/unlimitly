@@ -17,6 +17,8 @@ export default defineConfig({
       // Z.ai preview gateway proxies to port 3000 — override the lovable default (8080)
       port: 3000,
       host: "0.0.0.0",
+      // Allow Z.ai preview hostnames (preview-<bot-id>.space-z.ai)
+      allowedHosts: true,
     },
   },
 });
