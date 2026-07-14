@@ -1,0 +1,212 @@
+:root {
+  /* Unlimitly · Editorial Ivory & Gold — light-first, matches landing site. */
+  color-scheme: light;
+  --ql-bg: #FBF8F1;            /* warm ivory canvas */
+  --ql-bg-elevated: #FFFDF7;   /* near-white paper */
+  --ql-bg-surface: #F5EEDD;    /* soft sand */
+  --ql-bg-hover: #EFE5CE;      /* parchment */
+  --ql-border: rgba(27, 26, 23, 0.10);
+  --ql-border-hover: #C9A84C;
+  --ql-text-primary: #1B1A17;  /* deep espresso ink */
+  --ql-text-secondary: #2A2823;
+  --ql-text-muted: #6B655A;
+  --ql-accent: #C9A84C;        /* signature gold */
+  --ql-accent-hover: #B8942F;
+  --ql-accent-glow: rgba(201, 168, 76, 0.28);
+  --ql-accent-subtle: rgba(201, 168, 76, 0.14);
+  --ql-link: #B8860B;
+  --ql-gradient-primary: linear-gradient(120deg, #C9A84C 0%, #F0D78C 50%, #C9A84C 100%);
+  --ql-gradient-shimmer: linear-gradient(120deg, #C9A84C, #F0D78C, #C9A84C);
+  --ql-success: #4C7A3F;
+  --ql-success-bg: rgba(76, 122, 63, 0.10);
+  --ql-warning: #B8860B;
+  --ql-warning-bg: rgba(240, 215, 140, 0.28);
+  --ql-danger: #B4472A;
+  --ql-danger-bg: rgba(180, 71, 42, 0.10);
+  --ql-radius: 14px;
+  --ql-radius-sm: 10px;
+  --ql-radius-xs: 8px;
+  --ql-shadow: 0 1px 0 rgba(27,26,23,0.04), 0 12px 40px -12px rgba(27,26,23,0.14);
+  --ql-shadow-hover: 0 2px 0 rgba(27,26,23,0.05), 0 20px 60px -16px rgba(201,168,76,0.35);
+  --ql-transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  --ql-glass: rgba(251, 248, 241, 0.85);
+  --ql-overlay: rgba(27, 26, 23, 0.45);
+  --ql-modal-bg: #FFFDF7;
+  --ql-modal-surface: #F5EEDD;
+  --ql-chat-bubble-end: #C9A84C;
+  --ql-font: 'Work Sans', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --ql-font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+}
+
+body.sp-light, #ql-floating.ql-light {
+  /* Sp-light stays close to the default ivory theme (already light-first). */
+  color-scheme: light;
+  --ql-bg: #FFFDF7;
+  --ql-bg-elevated: #FFFFFF;
+  --ql-bg-surface: #FBF8F1;
+  --ql-bg-hover: #F5EEDD;
+  --ql-border: rgba(27, 26, 23, 0.08);
+  --ql-border-hover: #C9A84C;
+  --ql-text-primary: #1B1A17;
+  --ql-text-secondary: #2A2823;
+  --ql-text-muted: #6B655A;
+  --ql-accent: #C9A84C;
+  --ql-accent-hover: #B8942F;
+  --ql-accent-glow: rgba(201, 168, 76, 0.18);
+  --ql-accent-subtle: rgba(201, 168, 76, 0.10);
+  --ql-link: #B8860B;
+  --ql-gradient-primary: linear-gradient(120deg, #C9A84C, #F0D78C, #C9A84C);
+  --ql-gradient-shimmer: linear-gradient(120deg, #C9A84C, #F0D78C, #C9A84C);
+  --ql-shadow: 0 1px 0 rgba(27,26,23,0.03), 0 10px 30px -12px rgba(27,26,23,0.12);
+  --ql-shadow-hover: 0 2px 0 rgba(27,26,23,0.05), 0 18px 50px -16px rgba(201,168,76,0.30);
+  --ql-glass: rgba(255, 253, 247, 0.92);
+  --ql-overlay: rgba(27, 26, 23, 0.35);
+  --ql-modal-bg: #FFFFFF;
+  --ql-modal-surface: #FBF8F1;
+  --ql-chat-bubble-end: #C9A84C;
+}
+
+/* Opt-in Noir dark mode for users who toggle it (keeps the same gold accent). */
+body.sp-dark, #ql-floating.ql-dark {
+  color-scheme: dark;
+  --ql-bg: #0d0d0d;
+  --ql-bg-elevated: #141414;
+  --ql-bg-surface: #1a1a1a;
+  --ql-bg-hover: #232323;
+  --ql-border: rgba(201, 168, 76, 0.20);
+  --ql-border-hover: #C9A84C;
+  --ql-text-primary: #FBF8F1;
+  --ql-text-secondary: #E7DFCB;
+  --ql-text-muted: #A69C86;
+  --ql-accent: #C9A84C;
+  --ql-accent-hover: #F0D78C;
+  --ql-accent-glow: rgba(201, 168, 76, 0.28);
+  --ql-accent-subtle: rgba(201, 168, 76, 0.12);
+  --ql-link: #F0D78C;
+  --ql-glass: rgba(13, 13, 13, 0.85);
+  --ql-overlay: rgba(0, 0, 0, 0.7);
+  --ql-modal-bg: #141414;
+  --ql-modal-surface: #1a1a1a;
+}
+
+body {
+  background: var(--ql-bg);
+  font-family: var(--ql-font);
+  color: var(--ql-text-primary);
+}
+
+/* Editorial display treatment for section titles across the extension. */
+.sp-brand-text, .ql-title, .ql-brand-name,
+.sp-modal-title, .pk-publish-modal h3,
+.sp-community-title, .ql-community-title,
+.sp-header .sp-brand-copy .sp-brand-text {
+  font-family: var(--ql-font-display);
+  font-style: italic;
+  letter-spacing: -0.01em;
+  font-weight: 500;
+}
+
+/* Gold hairline underline accent used under the brand mark. */
+.sp-brand::after, .ql-brand::after {
+  content: "";
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--ql-accent) 40%, var(--ql-accent) 60%, transparent);
+  opacity: 0.4;
+  margin-top: 4px;
+}
+
+.sp-btn-feature {
+  width: 100%;
+  padding: 8px 12px;
+  margin-top: 6px;
+  border-radius: var(--ql-radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--ql-transition);
+  font-family: inherit;
+  border: 1px solid var(--ql-border);
+  background: var(--ql-bg-surface);
+  color: var(--ql-text-secondary);
+}
+
+.sp-btn-feature:hover {
+  border-color: var(--ql-border-hover);
+  color: var(--ql-text-primary);
+  background: var(--ql-bg-hover);
+}
+.sp-btn-feature:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+.sp-btn-native-chat { color: var(--ql-accent); border-color: var(--ql-accent-subtle); }
+.sp-btn-native-chat:hover { background: var(--ql-accent-subtle); }
+.sp-btn-native-chat.sp-native-active { color: var(--ql-success); border-color: var(--ql-success-bg); }
+.sp-btn-download { color: var(--ql-accent); }
+.sp-btn-download:hover { background: var(--ql-accent-subtle); }
+.sp-btn-quick-init { color: var(--ql-accent); }
+.sp-btn-quick-init:hover { background: var(--ql-accent-subtle); }
+.sp-btn-publish { color: var(--ql-accent); }
+.sp-btn-publish:hover { background: var(--ql-accent-subtle); }
+.sp-btn-cloud { color: #38bdf8; }
+.sp-btn-cloud:hover { background: rgba(56, 189, 248, 0.08); }
+
+.sp-section-label {
+  margin-top: 14px;
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ql-text-muted);
+}
+
+.pk-discord-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1px solid var(--ql-border);
+  background: var(--ql-bg-surface);
+  color: var(--ql-text-secondary);
+  text-decoration: none;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all var(--ql-transition);
+}
+.pk-discord-cta:hover { border-color: var(--ql-border-hover); color: var(--ql-text-primary); }
+
+.pk-publish-overlay {
+  position: fixed; inset: 0;
+  background: var(--ql-overlay);
+  z-index: 99999;
+  display: flex;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.pk-publish-overlay-top { z-index: 2147483647; }
+.pk-publish-modal {
+  background: var(--ql-modal-bg);
+  border: 1px solid var(--ql-border);
+  border-radius: 14px;
+  padding: 24px;
+  max-width: 360px;
+  width: 90%;
+  box-shadow: var(--ql-shadow);
+}
+.pk-publish-modal h3 { margin: 0 0 8px; color: var(--ql-text-primary); font-size: 16px; font-weight: 700; text-align: center; }
+.pk-publish-modal p { margin: 0 0 16px; color: var(--ql-text-secondary); font-size: 13px; text-align: center; }
+.pk-publish-url-box { background: var(--ql-modal-surface); border: 1px solid var(--ql-border); border-radius: 10px; padding: 10px; margin-bottom: 16px; word-break: break-all; }
+.pk-publish-url-box a { color: var(--ql-link); text-decoration: none; font-size: 13px; }
+.pk-publish-actions { display: flex; gap: 8px; }
+.pk-publish-actions button { flex: 1; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; }
+.pk-publish-copy { border: 1px solid var(--ql-border); background: transparent; color: var(--ql-text-primary); }
+.pk-publish-open { border: none; background: var(--ql-gradient-primary); color: #fff; font-weight: 600; }
+.pk-publish-close { width: 100%; margin-top: 8px; padding: 8px; border: none; background: transparent; color: var(--ql-text-muted); cursor: pointer; font-size: 12px; font-family: inherit; }
+
+.pk-update-banner { padding: 12px 14px; background: var(--ql-bg-surface); border: 1px solid var(--ql-border); border-radius: 10px; margin: 8px 0; }
+.pk-update-banner-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.pk-update-banner-title { font-size: 12px; color: var(--ql-accent); font-weight: 600; }
+.pk-update-banner-text { font-size: 11px; color: var(--ql-text-secondary); margin: 0 0 8px; white-space: pre-line; }
+.pk-update-banner-dl { display: inline-block; padding: 5px 14px; background: var(--ql-gradient-primary); color: #fff; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; }

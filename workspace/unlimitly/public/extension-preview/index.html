@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unlimitly — a small studio for lovable.dev</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@500;700&display=swap">
+  <style>
+    :root{
+      --paper:#F6EFE1;         /* warm off-cream, like recycled paper */
+      --paper-2:#EFE5CE;
+      --card:#FBF6EA;
+      --ink:#2A2620;           /* soft black, never pure #000 */
+      --ink-2:#4A4237;
+      --muted:#8A7F6C;
+      --rule:#D9CDB0;          /* pencil line */
+      --gold:#B8873A;
+      --clay:#C4653E;          /* terracotta */
+      --moss:#6B8E4E;          /* garden green */
+      --sky:#3F6B8A;           /* dusty blue */
+      --plum:#7A4B6B;
+      --sun:#D4A22E;
+      --rose:#B85878;
+      --stone:#5C5849;
+      --pine:#3E5B4A;
+      --shadow:0 1px 0 rgba(42,38,32,.04), 0 12px 28px -22px rgba(42,38,32,.35);
+      --shadow-lg:0 2px 0 rgba(42,38,32,.05), 0 26px 50px -28px rgba(42,38,32,.45);
+      --serif:'Fraunces',Georgia,serif;
+      --sans:'Inter',system-ui,sans-serif;
+      --hand:'Caveat',cursive;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:var(--sans);color:var(--ink);-webkit-font-smoothing:antialiased;}
+    /* paper backdrop with subtle grain */
+    body{
+      display:flex;justify-content:center;padding:26px 20px;
+      background:
+        radial-gradient(1200px 500px at 12% -10%, #F9E9C2 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 110%, #E7D6B1 0%, transparent 55%),
+        var(--paper);
+      position:relative;
+    }
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;opacity:.35;mix-blend-mode:multiply;
+      background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.16  0 0 0 0 0.15  0 0 0 0 0.12  0 0 0 0.09 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    }
+
+    .shell{
+      position:relative;width:430px;background:var(--card);
+      border:1px solid var(--rule);border-radius:2px;
+      box-shadow:var(--shadow-lg);
+      /* torn/deckled feel via double border */
+      outline:1px dashed rgba(184,135,58,.35); outline-offset:-8px;
+      overflow:hidden;
+    }
+
+    /* ——— Masthead ——— */
+    .mast{padding:22px 22px 14px;border-bottom:1px solid var(--rule);position:relative;}
+    .mast .kicker{display:flex;align-items:center;gap:8px;font-family:var(--sans);font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted);}
+    .mast .kicker .swatch{display:inline-flex;gap:3px;}
+    .mast .kicker .swatch i{width:6px;height:6px;border-radius:50%;display:block;}
+    .mast .kicker .swatch i:nth-child(1){background:var(--clay);}
+    .mast .kicker .swatch i:nth-child(2){background:var(--moss);}
+    .mast .kicker .swatch i:nth-child(3){background:var(--sky);}
+    .mast .kicker .swatch i:nth-child(4){background:var(--sun);}
+    .mast h1{margin:8px 0 2px;font-family:var(--serif);font-weight:500;font-size:44px;letter-spacing:-.02em;line-height:.95;color:var(--ink);}
+    .mast h1 em{font-style:italic;color:var(--clay);font-weight:400;}
+    .mast .tag{font-family:var(--serif);font-style:italic;font-size:14px;color:var(--ink-2);margin-top:6px;}
+    .mast .tag .sig{font-family:var(--hand);font-size:20px;color:var(--gold);margin-left:6px;}
+    .mast .tools{position:absolute;top:20px;right:18px;display:flex;gap:6px;}
+    .tbtn{width:30px;height:30px;border-radius:50%;border:1px solid var(--rule);background:var(--card);display:grid;place-items:center;cursor:pointer;color:var(--ink-2);}
+    .tbtn:hover{background:var(--paper-2);}
+    .tbtn svg{width:13px;height:13px;}
+
+    /* running header — like a magazine */
+    .runhead{display:flex;align-items:center;gap:10px;padding:8px 22px;border-bottom:1px solid var(--rule);font-size:10.5px;color:var(--muted);letter-spacing:.14em;text-transform:uppercase;background:linear-gradient(90deg,transparent, rgba(217,205,176,.25), transparent);}
+    .runhead .pin{width:6px;height:6px;border-radius:50%;background:var(--moss);box-shadow:0 0 0 3px rgba(107,142,78,.18);}
+    .runhead .grow{flex:1;}
+    .runhead .credit{font-family:var(--serif);font-style:italic;text-transform:none;letter-spacing:0;color:var(--gold);font-size:13px;}
+
+    /* Section head */
+    .sec{padding:18px 22px 4px;}
+    .sec + .sec{padding-top:10px;}
+    .num{font-family:var(--serif);font-style:italic;font-size:26px;color:var(--clay);line-height:1;}
+    .head{display:flex;align-items:baseline;gap:10px;margin-bottom:12px;}
+    .head h2{margin:0;font-family:var(--serif);font-weight:500;font-size:20px;letter-spacing:-.01em;color:var(--ink);}
+    .head h2 em{font-style:italic;color:var(--ink-2);font-weight:400;}
+    .head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--rule),transparent);align-self:center;}
+    .head .note{font-family:var(--hand);font-size:16px;color:var(--muted);transform:rotate(-2deg);}
+
+    /* Prompt — a notecard */
+    .card{background:#FEFBF1;border:1px solid var(--rule);border-radius:3px;padding:14px 14px 12px;box-shadow:var(--shadow);position:relative;}
+    .card::before{content:"";position:absolute;top:-6px;left:22px;width:44px;height:16px;background:rgba(212,162,46,.25);border:1px solid rgba(184,135,58,.35);border-radius:1px;transform:rotate(-3deg);}
+    .card::after{content:"note";position:absolute;top:-3px;left:32px;font-family:var(--hand);font-size:14px;color:var(--gold);transform:rotate(-3deg);}
+    .card textarea{width:100%;min-height:98px;border:0;outline:0;resize:none;background:transparent;color:var(--ink);font-family:var(--serif);font-size:16px;line-height:1.5;}
+    .card textarea::placeholder{color:#B0A48C;font-style:italic;}
+    .pfoot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule);}
+    .pfoot .hint{font-family:var(--hand);font-size:15px;color:var(--muted);}
+    .send{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border:1px solid var(--ink);background:var(--ink);color:#F6EFE1;border-radius:999px;font-family:var(--serif);font-style:italic;font-size:15px;cursor:pointer;box-shadow:2px 2px 0 var(--gold);transition:.15s;}
+    .send:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--gold);}
+    .send svg{width:13px;height:13px;}
+
+    /* Shortcuts — postage stamps */
+    .stamps{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+    .stamp{position:relative;padding:12px 10px;border:1px dashed var(--rule);background:#FEFBF1;border-radius:3px;cursor:pointer;transition:.2s;text-align:left;display:flex;flex-direction:column;gap:8px;}
+    .stamp:hover{transform:rotate(-.5deg) translateY(-2px);border-color:var(--ink-2);box-shadow:var(--shadow);}
+    .stamp:nth-child(3n+2):hover{transform:rotate(.5deg) translateY(-2px);}
+    .stamp .glyph{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:#FEFBF1;font-family:var(--serif);font-style:italic;font-size:17px;font-weight:500;}
+    .stamp .name{font-family:var(--serif);font-size:15px;color:var(--ink);letter-spacing:-.01em;}
+    .stamp .whisper{font-size:10.5px;color:var(--muted);line-height:1.35;}
+    .stamp.wide{grid-column:span 3;flex-direction:row;align-items:center;gap:12px;}
+    .stamp.wide .name{font-style:italic;}
+    /* stamp colors — earthy, not neon */
+    .s-bug .glyph{background:var(--clay);}
+    .s-ref .glyph{background:var(--sky);}
+    .s-err .glyph{background:var(--sun);color:var(--ink);}
+    .s-opt .glyph{background:var(--moss);}
+    .s-cmt .glyph{background:var(--stone);}
+    .s-seo .glyph{background:var(--pine);}
+    .s-ui  .glyph{background:var(--rose);}
+    .s-cmp .glyph{background:var(--gold);}
+    .s-rev .glyph{background:var(--plum);}
+    .s-hum .glyph{background:linear-gradient(135deg,var(--clay),var(--sun));}
+
+    /* Advanced — index cards */
+    .rows{display:grid;gap:8px;}
+    .rw{display:flex;align-items:center;gap:12px;padding:12px 13px;background:#FEFBF1;border:1px solid var(--rule);border-left:3px solid var(--rule);border-radius:2px;cursor:pointer;transition:.2s;}
+    .rw:hover{border-left-color:var(--gold);transform:translateX(2px);}
+    .rw .badge{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-family:var(--serif);font-style:italic;font-size:18px;color:#FEFBF1;flex-shrink:0;}
+    .rw .tx{flex:1;min-width:0;}
+    .rw .tx .h{font-family:var(--serif);font-size:16px;color:var(--ink);letter-spacing:-.01em;}
+    .rw .tx .p{font-size:11.5px;color:var(--muted);margin-top:2px;font-style:italic;}
+    .rw .aside{font-family:var(--hand);font-size:15px;color:var(--muted);}
+    .tg{width:36px;height:20px;border-radius:999px;background:#E4D8BC;position:relative;flex-shrink:0;border:1px solid var(--rule);}
+    .tg::after{content:"";position:absolute;top:1px;left:1px;width:16px;height:16px;border-radius:50%;background:#FEFBF1;box-shadow:0 1px 2px rgba(42,38,32,.25);transition:.2s;}
+    .tg.on{background:var(--moss);border-color:var(--pine);}
+    .tg.on::after{left:17px;}
+    .rw.a1 .badge{background:var(--clay);} 
+    .rw.a2 .badge{background:var(--pine);} 
+    .rw.a3 .badge{background:var(--sky);} 
+    .rw.a4 .badge{background:var(--rose);} 
+    .rw.a5 .badge{background:var(--gold);}
+
+    /* Colophon / footer */
+    .colo{margin:14px 22px 20px;padding-top:14px;border-top:1px dashed var(--rule);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+    .colo .left{font-family:var(--serif);font-style:italic;font-size:13.5px;color:var(--ink-2);line-height:1.4;}
+    .colo .left b{font-style:normal;font-weight:500;color:var(--ink);}
+    .colo .left .made{display:block;font-family:var(--hand);font-size:16px;color:var(--gold);margin-top:2px;}
+    .colo .right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+    .colo .right a{font-size:11px;color:var(--muted);text-decoration:none;letter-spacing:.06em;}
+    .colo .right a:hover{color:var(--clay);}
+    .colo .right .ver{font-family:var(--serif);font-style:italic;font-size:12px;color:var(--muted);}
+  </style>
+</head>
+<body>
+  <div class="shell">
+
+    <!-- Masthead -->
+    <div class="mast">
+      <div class="tools">
+        <button class="tbtn" title="More"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></svg></button>
+      </div>
+      <div class="kicker">
+        <span class="swatch"><i></i><i></i><i></i><i></i></span>
+        <span>Issue N°14 · Summer</span>
+      </div>
+      <h1>Un<em>limit</em>ly</h1>
+      <div class="tag">a small studio inside lovable <span class="sig">— by Proflow</span></div>
+    </div>
+
+    <!-- Running header -->
+    <div class="runhead">
+      <span class="pin"></span>
+      <span>Connected · lovable.dev</span>
+      <span class="grow"></span>
+      <span class="credit">unlimited today</span>
+    </div>
+
+    <!-- 01 · Compose -->
+    <div class="sec">
+      <div class="head">
+        <span class="num">01.</span>
+        <h2>Say what you're <em>trying to make</em></h2>
+        <span class="rule"></span>
+        <span class="note">write freely →</span>
+      </div>
+      <div class="card">
+        <textarea placeholder="a landing page for my dad's bakery, warm and honest, one photo of the ovens, a story about the sourdough…"></textarea>
+        <div class="pfoot">
+          <span class="hint">↵ to send · shift + ↵ for a new line</span>
+          <button class="send">Send it
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 · Shortcuts -->
+    <div class="sec">
+      <div class="head">
+        <span class="num">02.</span>
+        <h2>Or borrow a <em>starting line</em></h2>
+        <span class="rule"></span>
+        <span class="note">tap one ↓</span>
+      </div>
+      <div class="stamps">
+        <button class="stamp s-bug"><span class="glyph">B</span><span class="name">Fix the bugs</span><span class="whisper">find what's broken, mend it gently</span></button>
+        <button class="stamp s-ref"><span class="glyph">R</span><span class="name">Refactor</span><span class="whisper">same soul, cleaner bones</span></button>
+        <button class="stamp s-err"><span class="glyph">E</span><span class="name">Errors</span><span class="whisper">trace them, explain, resolve</span></button>
+        <button class="stamp s-opt"><span class="glyph">O</span><span class="name">Optimize</span><span class="whisper">lighter, faster, kinder to load</span></button>
+        <button class="stamp s-cmt"><span class="glyph">C</span><span class="name">Comments</span><span class="whisper">notes for future-you</span></button>
+        <button class="stamp s-seo"><span class="glyph">S</span><span class="name">SEO</span><span class="whisper">titles, meta, quiet keywords</span></button>
+        <button class="stamp s-ui"><span class="glyph">U</span><span class="name">UI polish</span><span class="whisper">spacing, weight, small mercies</span></button>
+        <button class="stamp s-cmp"><span class="glyph">C</span><span class="name">Components</span><span class="whisper">reusable, named, shelved</span></button>
+        <button class="stamp s-rev"><span class="glyph">R</span><span class="name">Review</span><span class="whisper">a second pair of eyes</span></button>
+        <button class="stamp s-hum wide"><span class="glyph">H</span><span><span class="name">Humanize the UI</span><span class="whisper" style="display:block;">make it feel handmade — warmth, rhythm, a little imperfection</span></span></button>
+      </div>
+    </div>
+
+    <!-- 03 · Advanced -->
+    <div class="sec">
+      <div class="head">
+        <span class="num">03.</span>
+        <h2>The <em>back office</em></h2>
+        <span class="rule"></span>
+        <span class="note">for the tinkerers</span>
+      </div>
+      <div class="rows">
+        <div class="rw a1">
+          <div class="badge">w</div>
+          <div class="tx"><div class="h">Remove the watermark</div><div class="p">quietly strip the built-with badge</div></div>
+          <div class="tg on"></div>
+        </div>
+        <div class="rw a2">
+          <div class="badge">s</div>
+          <div class="tx"><div class="h">Enable Shield</div><div class="p">keep your credits from disappearing</div></div>
+          <div class="tg on"></div>
+        </div>
+        <div class="rw a3">
+          <div class="badge">d</div>
+          <div class="tx"><div class="h">Download the project</div><div class="p">everything, zipped, in one breath</div></div>
+          <span class="aside">→</span>
+        </div>
+        <div class="rw a4">
+          <div class="badge">n</div>
+          <div class="tx"><div class="h">Start something new</div><div class="p">a fresh page, blank on purpose</div></div>
+          <span class="aside">→</span>
+        </div>
+        <div class="rw a5">
+          <div class="badge">p</div>
+          <div class="tx"><div class="h">Publish it</div><div class="p">send your work into the world</div></div>
+          <span class="aside">→</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colophon -->
+    <div class="colo">
+      <div class="left">
+        <b>Unlimitly</b>, a companion for lovable.<br>
+        <span class="made">made with care by Proflow —</span>
+      </div>
+      <div class="right">
+        <span class="ver">vol. 1 · no. 1.1.7</span>
+        <a href="#">say hello on whatsapp</a>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
+<script>
+(function(){
+  const prompts = {
+    's-bug': "Act as a senior engineer doing a bug hunt on this project. Scan the whole codebase for: runtime errors, silent failures, incorrect state updates, race conditions, off-by-one and null/undefined issues, unhandled promise rejections, and broken edge cases. For each bug: (1) name the file and line, (2) explain the root cause in plain English, (3) show a minimal fix as a diff, (4) note any regression risk. Prioritize by severity (crash > data loss > wrong UI > cosmetic). Then apply the fixes.",
+    's-ref': "Refactor this codebase for clarity without changing behavior. Extract repeated logic into small, well-named functions; collapse deep nesting; replace magic numbers with named constants; split god-components into focused ones; move types next to usage; keep public APIs stable. Do it in small, reviewable steps and after each step explain what changed and why. No feature changes, no visual changes — same soul, cleaner bones.",
+    's-err': "Find every error surface in this app — thrown exceptions, failed fetches, broken imports, TypeScript errors, console errors, and error boundaries hit at runtime. For each: reproduce it in words, trace the root cause, fix it, and add a small guard (try/catch, fallback, type narrowing, or default state) so the same class of error can't come back. Finish by running through the app mentally page by page and reporting anything still unstable.",
+    's-opt': "Optimize this project for real performance — not micro-benchmarks. Focus on: bundle size (unused deps, heavy imports, tree-shakeable alternatives), render performance (memoization where it matters, key correctness, avoiding re-render cascades), network (waterfall requests, missing caching, oversized images), and perceived speed (skeletons, optimistic UI). Measure before/after where possible and list every change with the expected impact.",
+    's-cmt': "Add thoughtful comments across the codebase — the kind a new teammate would thank you for. Explain the *why*, not the *what*: business rules, non-obvious edge cases, workarounds, invariants, and 'do not touch this' warnings. Add JSDoc/TSDoc to exported functions with @param and @returns. Skip comments that just restate the code. Keep them short and honest.",
+    's-seo': "Do a full on-page SEO pass on this site. For every route: write a unique, human title under 60 chars and meta description under 160 chars; set og:title, og:description, og:type, og:image, twitter:card; ensure one clear H1 with the primary keyword; add semantic HTML (header/main/nav/article/section/footer); write descriptive alt text on every image; add JSON-LD (Organization, WebSite, and per-page schema like Article/Product/FAQ where relevant); set canonical tags; make sure the viewport meta is present. Report the changes route by route.",
+    's-ui': "Polish the UI end-to-end. Fix spacing rhythm (consistent 4/8px scale), type hierarchy (max 3 sizes per view, correct weight/leading), color contrast (AA minimum), alignment on every card and form row, focus states on every interactive element, hover/active feedback, empty states, loading skeletons, and mobile layout at 375px, 414px, 768px. Small mercies matter — round the right corners, soften shadows, breathe. Walk the whole app and fix as you go.",
+    's-cmp': "Extract the reusable UI into a clean component library inside this project. Identify duplicated JSX, promote it to a single component with a narrow props API, put it in `src/components/`, add TypeScript types, sensible defaults, and a short usage comment at the top. Replace all previous inline copies with the new component. Keep behavior identical. List every component created and every callsite migrated.",
+    's-rev': "Do a code review of this project as if you were a staff engineer opening the PR. Cover: architecture (is anything in the wrong layer?), correctness (bugs, edge cases, race conditions), security (secrets in client, unvalidated inputs, missing auth checks, RLS gaps), performance, accessibility, and code smell. Give a prioritized list: must-fix, should-fix, nice-to-have. Be direct, be kind, and suggest concrete fixes — not just complaints.",
+    's-hum': "Humanize this UI. Right now it feels AI-generated — too symmetrical, too generic, too polite. Give it warmth and personality: a distinctive typeface pairing (not Inter), a considered color palette with real character, editorial rhythm (asymmetry, generous whitespace, deliberate density), microcopy that sounds like a person wrote it (short, honest, occasionally playful), small tactile details (subtle grain, hand-drawn accents, imperfect alignment where it helps), and motion that feels natural rather than snappy. Walk every page and rework it. No purple gradients, no sparkle icons, no 'AI-magic' clichés."
+  };
+  document.querySelectorAll('.stamp').forEach(btn => {
+    const key = [...btn.classList].find(c => prompts[c]);
+    if (!key) return;
+    btn.addEventListener('click', () => {
+      const ta = document.querySelector('.card textarea');
+      if (!ta) return;
+      ta.value = prompts[key];
+      ta.focus();
+      ta.scrollTop = 0;
+      ta.style.transition = 'background .5s';
+      ta.style.background = 'rgba(212,162,46,.14)';
+      setTimeout(() => ta.style.background = 'transparent', 500);
+      document.querySelector('.card').scrollIntoView({behavior:'smooth', block:'center'});
+    });
+  });
+})();
+</script>
