@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getUnlSupabase } from "@/lib/unl-supabase";
-import { Copy, Check, KeyRound, TrendingUp, Wallet } from "lucide-react";
+import { Copy, Check, KeyRound, TrendingUp, Wallet, Download, FileText } from "lucide-react";
 
 type KeyRow = {
   key: string;
@@ -55,6 +55,39 @@ function CopyButton({ value, id }: { value: string; id: string }) {
       {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
     </button>
   );
+}
+
+/* ---------- download .txt helper ---------- */
+function downloadKeysTxt(keys: KeyRow[], scope: "all" | "unused" | "active", resellerEmail: string) {
+  const filtered = keys.filter((k) => {
+    if (scope === "all") return true;
+    return k.status === scope;
+  });
+  if (filtered.length === 0) return;
+
+  const lines = filtered.map((k) => k.key);
+  const header = [
+    `# Unlimitly License Keys`,
+    `# Reseller: ${resellerEmail}`,
+    `# Scope: ${scope} (${filtered.length} keys)`,
+    `# Generated: ${new Date().toISOString()}`,
+    `# Duration types: ${[...new Set(filtered.map((k) => k.duration_type))].join(", ")}`,
+    ``,
+    ...lines,
+    ``,
+  ].join("\n");
+
+  const blob = new Blob([header], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  const stamp = new Date().toISOString().slice(0, 10);
+  const safeEmail = resellerEmail.replace(/[^a-zA-Z0-9@._-]/g, "_");
+  a.download = `unlimitly-keys-${safeEmail}-${scope}-${stamp}.txt`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 500);
 }
 
 export default function ResellerPage() {
@@ -348,13 +381,45 @@ function ResellerDashboard({
         </div>
 
         <div className="rounded-lg border border-neutral-200 bg-white">
-          <div className="border-b border-neutral-200 px-4 py-3">
-            <h2 className="text-sm font-semibold">
-              Your clients <span className="text-neutral-400">({keys.length})</span>
-            </h2>
-            <p className="mt-0.5 text-[11px] text-neutral-400">
-              {unusedCount} unused · {activeCount} active · {keys.length - unusedCount - activeCount} other
-            </p>
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-neutral-200 px-4 py-3">
+            <div>
+              <h2 className="text-sm font-semibold">
+                Your clients <span className="text-neutral-400">({keys.length})</span>
+              </h2>
+              <p className="mt-0.5 text-[11px] text-neutral-400">
+                {unusedCount} unused · {activeCount} active · {keys.length - unusedCount - activeCount} other
+              </p>
+            </div>
+            {keys.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => downloadKeysTxt(keys, "unused", email)}
+                  disabled={unusedCount === 0}
+                  title="Download unused keys as .txt"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-2.5 py-1.5 text-[11px] font-medium text-neutral-700 transition hover:border-neutral-400 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Download className="h-3 w-3" />
+                  Unused ({unusedCount})
+                </button>
+                <button
+                  onClick={() => downloadKeysTxt(keys, "active", email)}
+                  disabled={activeCount === 0}
+                  title="Download active keys as .txt"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-medium text-emerald-700 transition hover:border-emerald-400 hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  <Download className="h-3 w-3" />
+                  Active ({activeCount})
+                </button>
+                <button
+                  onClick={() => downloadKeysTxt(keys, "all", email)}
+                  title="Download all keys as .txt"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-neutral-900 bg-neutral-900 px-2.5 py-1.5 text-[11px] font-medium text-white transition hover:bg-neutral-700"
+                >
+                  <FileText className="h-3 w-3" />
+                  All ({keys.length})
+                </button>
+              </div>
+            )}
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
@@ -441,11 +506,12 @@ function ResellerDashboard({
           </div>
         </div>
 
-        <div className="rounded-lg border border-neutral-200 bg-amber-50/40 p-4">
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/40 p-4">
           <p className="text-xs text-neutral-600">
-            <strong className="text-neutral-800">Note:</strong> If your admin has created bulk keys for you,
-            they will appear in the table above. You can copy individual keys with the copy button,
-            but bulk .txt downloads are admin-only — contact your admin if you need a batch file.
+            <strong className="text-neutral-800">Tip:</strong> Use the download buttons above to export
+            your keys as a .txt file (Unused, Active, or All). Each file includes a header with your
+            email, the date, and the key count for your records. Only you can download your own keys —
+            bulk <em>creation</em> of new keys is admin-only.
           </p>
         </div>
       </section>
