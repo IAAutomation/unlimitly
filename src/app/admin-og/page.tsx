@@ -41,6 +41,17 @@ type BatchRow = {
   active_count: number;
   unused_count: number;
   revoked_count: number;
+  expired_count?: number;
+};
+
+type BatchKey = {
+  key: string;
+  duration_type: string;
+  status: string;
+  client_name: string | null;
+  expires_at: string | null;
+  activated_at: string | null;
+  device_fingerprint: string | null;
 };
 
 /* ---------- copy hook ---------- */
@@ -111,25 +122,45 @@ async function downloadBatchTxt(supabase: ReturnType<typeof getUnlSupabase>, bat
 }
 
 /* ---------- batch card ---------- */
-function BatchCard({ batch, supabase, showReseller = false }: { batch: BatchRow; supabase: ReturnType<typeof getUnlSupabase>; showReseller?: boolean }) {
+function BatchCard({ batch, supabase, showReseller = false, isAdmin = false, onChanged }: { batch: BatchRow; supabase: ReturnType<typeof getUnlSupabase>; showReseller?: boolean; isAdmin?: boolean; onChanged?: () => void }) {
   const [expanded, setExpanded] = useState(false);
-  const [keys, setKeys] = useState<string[]>([]);
+  const [keys, setKeys] = useState<BatchKey[]>([]);
   const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
   const { copiedKey, copy } = useCopy();
 
   async function toggleExpand() {
-    if (expanded) {
-      setExpanded(false);
-      return;
-    }
+    if (expanded) { setExpanded(false); return; }
     if (keys.length === 0) {
       setLoading(true);
       const { data, error } = await supabase.rpc("unl_get_batch_keys", { p_batch_id: batch.batch_id });
       setLoading(false);
       if (error) return alert(error.message);
-      setKeys(((data as any[]) || []).map((r) => r.key));
+      setKeys((data as BatchKey[]) || []);
     }
     setExpanded(true);
+  }
+
+  async function revokeKey(k: string) {
+    if (!confirm("Revoke key " + k + " ?")) return;
+    setBusy(k);
+    const rpc = isAdmin ? "unl_admin_revoke_key" : "unl_reseller_revoke_key";
+    const { error } = await supabase.rpc(rpc, { p_key: k });
+    setBusy(null);
+    if (error) return alert(error.message);
+    setKeys((prev) => prev.map((kk) => (kk.key === k ? { ...kk, status: "revoked" } : kk)));
+    onChanged?.();
+  }
+
+  async function resetBinding(k: string) {
+    if (!confirm("Reset device binding for " + k + " ?")) return;
+    setBusy(k);
+    const rpc = isAdmin ? "unl_admin_reset_binding" : "unl_reseller_reset_binding";
+    const { error } = await supabase.rpc(rpc, { p_key: k });
+    setBusy(null);
+    if (error) return alert(error.message);
+    setKeys((prev) => prev.map((kk) => (kk.key === k ? { ...kk, status: "unused", device_fingerprint: null, activated_at: null } : kk)));
+    onChanged?.();
   }
 
   return (
@@ -151,10 +182,11 @@ function BatchCard({ batch, supabase, showReseller = false }: { batch: BatchRow;
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex gap-1.5 text-[10px]">
+          <div className="flex flex-wrap gap-1.5 text-[10px]">
             <span className="rounded bg-emerald-100 px-1.5 py-0.5 text-emerald-700">{batch.active_count} active</span>
             <span className="rounded bg-neutral-100 px-1.5 py-0.5 text-neutral-600">{batch.unused_count} unused</span>
             {batch.revoked_count > 0 && <span className="rounded bg-red-100 px-1.5 py-0.5 text-red-700">{batch.revoked_count} revoked</span>}
+            {batch.expired_count && batch.expired_count > 0 && <span className="rounded bg-amber-100 px-1.5 py-0.5 text-amber-700">{batch.expired_count} expired</span>}
           </div>
           <button
             onClick={() => downloadBatchTxt(supabase, batch)}
@@ -173,21 +205,52 @@ function BatchCard({ batch, supabase, showReseller = false }: { batch: BatchRow;
         </div>
       </div>
       {expanded && keys.length > 0 && (
-        <div className="mt-3 max-h-48 overflow-y-auto rounded-md border border-neutral-200 bg-white">
+        <div className="mt-3 max-h-80 overflow-y-auto rounded-md border border-neutral-200 bg-white">
           <table className="w-full text-left text-xs">
+            <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
+              <tr>
+                <th className="w-8 px-3 py-2 font-medium">#</th>
+                <th className="px-3 py-2 font-medium">Key</th>
+                <th className="px-3 py-2 font-medium">Status</th>
+                <th className="px-3 py-2 font-medium">Client</th>
+                <th className="px-3 py-2 font-medium">Expires</th>
+                <th className="px-3 py-2" />
+              </tr>
+            </thead>
             <tbody>
               {keys.map((k, i) => (
-                <tr key={k} className="border-b border-neutral-50 last:border-0 hover:bg-amber-50/40">
-                  <td className="w-10 px-3 py-1.5 text-neutral-400">{i + 1}</td>
-                  <td className="px-3 py-1.5"><code className="font-mono text-[11px] tracking-tight text-neutral-800">{k}</code></td>
-                  <td className="w-10 px-3 py-1.5 text-right">
-                    <button
-                      onClick={() => copy(k, `batch-${k}`)}
-                      title="Copy"
-                      className={`grid h-6 w-6 place-items-center rounded border transition ${copiedKey === `batch-${k}` ? "border-emerald-300 bg-emerald-50 text-emerald-600" : "border-neutral-200 text-neutral-500 hover:text-neutral-900"}`}
-                    >
-                      {copiedKey === `batch-${k}` ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                    </button>
+                <tr key={k.key} className="border-b border-neutral-50 last:border-0 hover:bg-amber-50/40">
+                  <td className="px-3 py-2 text-neutral-400">{i + 1}</td>
+                  <td className="px-3 py-2">
+                    <div className="flex items-center gap-1.5">
+                      <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[11px] tracking-tight text-neutral-800">{k.key}</code>
+                      <button
+                        onClick={() => copy(k.key, `batch-${k.key}`)}
+                        title="Copy"
+                        className={`grid h-6 w-6 place-items-center rounded border transition ${copiedKey === `batch-${k.key}` ? "border-emerald-300 bg-emerald-50 text-emerald-600" : "border-neutral-200 text-neutral-500 hover:text-neutral-900"}`}
+                      >
+                        {copiedKey === `batch-${k.key}` ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                      </button>
+                    </div>
+                  </td>
+                  <td className="px-3 py-2">
+                    <span className={"rounded px-2 py-0.5 text-[10px] font-medium " + (k.status === "active" ? "bg-emerald-50 text-emerald-700" : k.status === "revoked" ? "bg-red-50 text-red-700" : k.status === "expired" ? "bg-amber-50 text-amber-700" : "bg-neutral-100 text-neutral-700")}>{k.status}</span>
+                  </td>
+                  <td className="px-3 py-2 text-neutral-600">{k.client_name || "—"}</td>
+                  <td className="px-3 py-2 text-neutral-600">{k.duration_type === "lifetime" || batch.duration_type === "lifetime" ? "∞" : fmt(k.expires_at)}</td>
+                  <td className="whitespace-nowrap px-3 py-2 text-right">
+                    {busy === k.key ? (
+                      <Loader2 className="h-3 w-3 animate-spin text-neutral-400" />
+                    ) : (
+                      <div className="flex justify-end gap-1">
+                        {k.status === "active" && (
+                          <button onClick={() => resetBinding(k.key)} className="rounded border border-neutral-300 px-2 py-1 text-[10px] hover:bg-neutral-100">Reset</button>
+                        )}
+                        {k.status !== "revoked" && (
+                          <button onClick={() => revokeKey(k.key)} className="rounded border border-red-200 bg-red-50 px-2 py-1 text-[10px] text-red-700 hover:bg-red-100">Revoke</button>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -394,7 +457,7 @@ function AdminDashboard({ supabase, email }: { supabase: ReturnType<typeof getUn
               </div>
               <div className="space-y-2">
                 {batches.map((b) => (
-                  <BatchCard key={b.batch_id} batch={b} supabase={supabase} showReseller />
+                  <BatchCard key={b.batch_id} batch={b} supabase={supabase} showReseller isAdmin onChanged={load} />
                 ))}
               </div>
             </div>
@@ -512,7 +575,7 @@ function AdminDashboard({ supabase, email }: { supabase: ReturnType<typeof getUn
                             </div>
                             <div className="space-y-2">
                               {resellerBatchList.map((b) => (
-                                <BatchCard key={b.batch_id} batch={b} supabase={supabase} />
+                                <BatchCard key={b.batch_id} batch={b} supabase={supabase} isAdmin onChanged={load} />
                               ))}
                             </div>
                           </div>
