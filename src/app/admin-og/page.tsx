@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getUnlSupabase } from "@/lib/unl-supabase";
+import { Copy, Check, Download, FileText, Loader2, Sparkles } from "lucide-react";
 
 type KeyRow = {
   key: string;
@@ -26,6 +27,47 @@ type ResellerRow = {
   disabled: boolean;
   created_at: string;
 };
+
+/* ---------- tiny copy hook ---------- */
+function useCopy() {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  async function copy(text: string, id: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(id);
+      setTimeout(() => setCopiedKey(null), 1400);
+    } catch {
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopiedKey(id);
+      setTimeout(() => setCopiedKey(null), 1400);
+    }
+  }
+  return { copiedKey, copy };
+}
+
+function CopyButton({ value, id }: { value: string; id: string }) {
+  const { copiedKey, copy } = useCopy();
+  const isCopied = copiedKey === id;
+  return (
+    <button
+      onClick={() => copy(value, id)}
+      title={isCopied ? "Copied!" : "Copy key"}
+      className={`grid h-7 w-7 place-items-center rounded-md border transition ${
+        isCopied
+          ? "border-emerald-300 bg-emerald-50 text-emerald-600"
+          : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"
+      }`}
+    >
+      {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
 
 export default function AdminPage() {
   const supabase = getUnlSupabase();
@@ -81,7 +123,7 @@ export default function AdminPage() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#FBF7EC] px-6 py-10 font-sans text-neutral-900">
-      <div className="mx-auto max-w-5xl">{children}</div>
+      <div className="mx-auto max-w-6xl">{children}</div>
     </div>
   );
 }
@@ -145,17 +187,19 @@ function AdminDashboard({
   supabase: ReturnType<typeof getUnlSupabase>;
   email: string;
 }) {
-  const [tab, setTab] = useState<"keys" | "resellers">("keys");
+  const [tab, setTab] = useState<"keys" | "bulk" | "resellers">("keys");
   const [keys, setKeys] = useState<KeyRow[]>([]);
   const [resellers, setResellers] = useState<ResellerRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  // Create key form
   const [duration, setDuration] = useState<"1m" | "3m" | "6m" | "1y" | "lifetime">("1m");
   const [clientName, setClientName] = useState("");
   const [creating, setCreating] = useState(false);
 
+  // Reseller form
   const [rEmail, setREmail] = useState("");
   const [rQuota, setRQuota] = useState(10);
 
@@ -180,7 +224,7 @@ function AdminDashboard({
 
   function flash(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 2200);
+    setTimeout(() => setToast(null), 2400);
   }
 
   async function createKey() {
@@ -291,18 +335,22 @@ function AdminDashboard({
       {err && <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">{err}</div>}
 
       <div className="mb-5 flex gap-1 border-b border-neutral-200">
-        {(["keys", "resellers"] as const).map((t) => (
+        {([
+          { id: "keys", label: "License Keys" },
+          { id: "bulk", label: "Bulk Create" },
+          { id: "resellers", label: "Resellers" },
+        ] as const).map((t) => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={t.id}
+            onClick={() => setTab(t.id)}
             className={
-              "px-4 py-2 text-sm font-medium " +
-              (tab === t
+              "px-4 py-2 text-sm font-medium transition " +
+              (tab === t.id
                 ? "border-b-2 border-neutral-900 text-neutral-900"
                 : "text-neutral-500 hover:text-neutral-800")
             }
           >
-            {t === "keys" ? "License Keys" : "Resellers"}
+            {t.label}
           </button>
         ))}
       </div>
@@ -358,7 +406,7 @@ function AdminDashboard({
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-50 text-neutral-500">
+                <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
                   <tr>
                     <th className="px-3 py-2 font-medium">Key</th>
                     <th className="px-3 py-2 font-medium">Duration</th>
@@ -387,16 +435,23 @@ function AdminDashboard({
                     </tr>
                   )}
                   {shown.map((k) => (
-                    <tr key={k.key} className="border-t border-neutral-100">
-                      <td className="px-3 py-2 font-mono">{k.key}</td>
+                    <tr key={k.key} className="border-t border-neutral-100 transition hover:bg-amber-50/40">
+                      <td className="px-3 py-2">
+                        <div className="flex items-center gap-1.5">
+                          <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[11px] tracking-tight text-neutral-800">
+                            {k.key}
+                          </code>
+                          <CopyButton value={k.key} id={k.key} />
+                        </div>
+                      </td>
                       <td className="px-3 py-2">{k.duration_type}</td>
                       <td className="px-3 py-2">
                         <StatusPill status={k.status} />
                       </td>
-                      <td className="px-3 py-2">{k.client_name || "—"}</td>
-                      <td className="px-3 py-2">{k.reseller_email || (k.created_by_admin_id ? "admin" : "—")}</td>
-                      <td className="px-3 py-2">{fmt(k.activated_at)}</td>
-                      <td className="px-3 py-2">{k.duration_type === "lifetime" ? "∞" : fmt(k.expires_at)}</td>
+                      <td className="px-3 py-2 text-neutral-700">{k.client_name || "—"}</td>
+                      <td className="px-3 py-2 text-neutral-700">{k.reseller_email || (k.created_by_admin_id ? "admin" : "—")}</td>
+                      <td className="px-3 py-2 text-neutral-600">{fmt(k.activated_at)}</td>
+                      <td className="px-3 py-2 text-neutral-600">{k.duration_type === "lifetime" ? "∞" : fmt(k.expires_at)}</td>
                       <td className="px-3 py-2 font-mono text-[10px] text-neutral-500">
                         {k.device_fingerprint ? k.device_fingerprint.slice(0, 12) + "…" : "—"}
                       </td>
@@ -425,6 +480,17 @@ function AdminDashboard({
             </div>
           </div>
         </section>
+      )}
+
+      {tab === "bulk" && (
+        <BulkCreateTab
+          supabase={supabase}
+          resellers={resellers}
+          onCreated={(count, email) => {
+            flash(`${count} keys created for ${email}`);
+            load();
+          }}
+        />
       )}
 
       {tab === "resellers" && (
@@ -467,7 +533,7 @@ function AdminDashboard({
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-neutral-50 text-neutral-500">
+                <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
                   <tr>
                     <th className="px-3 py-2 font-medium">Email</th>
                     <th className="px-3 py-2 font-medium">Quota</th>
@@ -486,8 +552,8 @@ function AdminDashboard({
                     </tr>
                   )}
                   {resellers.map((r) => (
-                    <tr key={r.id} className="border-t border-neutral-100">
-                      <td className="px-3 py-2">{r.email}</td>
+                    <tr key={r.id} className="border-t border-neutral-100 transition hover:bg-amber-50/40">
+                      <td className="px-3 py-2 font-medium text-neutral-900">{r.email}</td>
                       <td className="px-3 py-2">
                         <input
                           type="number"
@@ -500,7 +566,7 @@ function AdminDashboard({
                           className="w-20 rounded border border-neutral-300 px-2 py-1"
                         />
                       </td>
-                      <td className="px-3 py-2">{r.keys_created}</td>
+                      <td className="px-3 py-2 text-neutral-700">{r.keys_created}</td>
                       <td className="px-3 py-2">
                         {r.disabled ? (
                           <span className="rounded bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-600">
@@ -512,7 +578,7 @@ function AdminDashboard({
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2">{fmt(r.created_at)}</td>
+                      <td className="px-3 py-2 text-neutral-600">{fmt(r.created_at)}</td>
                       <td className="whitespace-nowrap px-3 py-2 text-right">
                         <button
                           onClick={() => toggleReseller(r.id, r.disabled)}
@@ -530,6 +596,243 @@ function AdminDashboard({
         </section>
       )}
     </Shell>
+  );
+}
+
+/* ============== Bulk Create Tab ============== */
+
+function BulkCreateTab({
+  supabase,
+  resellers,
+  onCreated,
+}: {
+  supabase: ReturnType<typeof getUnlSupabase>;
+  resellers: ResellerRow[];
+  onCreated: (count: number, email: string) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [count, setCount] = useState(50);
+  const [duration, setDuration] = useState<"1m" | "3m" | "6m" | "1y" | "lifetime">("1m");
+  const [prefix, setPrefix] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [result, setResult] = useState<{ keys: string[]; email: string; duration: string } | null>(null);
+  const { copiedKey, copy } = useCopy();
+
+  function downloadTxt(keys: string[], filename: string) {
+    const text = keys.join("\n") + "\n";
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 500);
+  }
+
+  async function generate() {
+    setBusy(true);
+    setErr(null);
+    setResult(null);
+
+    if (!email) {
+      setErr("Please enter a reseller email.");
+      setBusy(false);
+      return;
+    }
+    if (count < 1 || count > 1000) {
+      setErr("Count must be between 1 and 1000.");
+      setBusy(false);
+      return;
+    }
+
+    const { data, error } = await supabase.rpc("unl_admin_create_bulk_keys", {
+      p_reseller_email: email,
+      p_duration: duration,
+      p_count: count,
+      p_client_prefix: prefix || null,
+    });
+
+    setBusy(false);
+
+    if (error) {
+      setErr(error.message);
+      return;
+    }
+
+    const rows = Array.isArray(data) ? data : [];
+    const newKeys = rows.map((r: any) => r.key).filter(Boolean);
+    setResult({ keys: newKeys, email, duration });
+
+    if (newKeys.length > 0) {
+      const stamp = new Date().toISOString().slice(0, 10);
+      const safeEmail = email.replace(/[^a-zA-Z0-9@._-]/g, "_");
+      downloadTxt(newKeys, `unlimitly-keys-${safeEmail}-${stamp}.txt`);
+    }
+
+    onCreated(newKeys.length, email);
+  }
+
+  return (
+    <section className="space-y-6">
+      <div className="rounded-lg border border-neutral-200 bg-white p-5">
+        <div className="mb-4 flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-amber-500" />
+          <h2 className="text-sm font-semibold">Bulk create keys for a reseller</h2>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-neutral-700">Reseller email</span>
+            <input
+              type="email"
+              list="reseller-emails"
+              placeholder="reseller@email.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            />
+            <datalist id="reseller-emails">
+              {resellers.map((r) => (
+                <option key={r.id} value={r.email} />
+              ))}
+            </datalist>
+            <span className="mt-1 block text-[11px] text-neutral-400">
+              {resellers.length} reseller{resellers.length !== 1 ? "s" : ""} available
+            </span>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-neutral-700">Number of keys</span>
+            <input
+              type="number"
+              min={1}
+              max={1000}
+              value={count}
+              onChange={(e) => setCount(Number(e.target.value))}
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            />
+            <span className="mt-1 block text-[11px] text-neutral-400">Up to 1000 per batch</span>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-neutral-700">Duration</span>
+            <select
+              value={duration}
+              onChange={(e) => setDuration(e.target.value as any)}
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            >
+              <option value="1m">1 month</option>
+              <option value="3m">3 months</option>
+              <option value="6m">6 months</option>
+              <option value="1y">1 year</option>
+              <option value="lifetime">Lifetime</option>
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-neutral-700">Client name prefix (optional)</span>
+            <input
+              type="text"
+              placeholder="e.g. Bulk-Q3-"
+              value={prefix}
+              onChange={(e) => setPrefix(e.target.value)}
+              className="w-full rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-900"
+            />
+            <span className="mt-1 block text-[11px] text-neutral-400">
+              Each key gets a suffix: {prefix ? `${prefix}1, ${prefix}2…` : "1, 2, 3…"}
+            </span>
+          </label>
+        </div>
+
+        <div className="mt-5 flex items-center gap-3">
+          <button
+            onClick={generate}
+            disabled={busy}
+            className="inline-flex items-center gap-2 rounded-md bg-neutral-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-neutral-800 disabled:opacity-50"
+          >
+            {busy ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Generating {count} keys…
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Generate {count} key{count !== 1 ? "s" : ""}
+              </>
+            )}
+          </button>
+          {err && <span className="text-xs text-red-600">{err}</span>}
+        </div>
+      </div>
+
+      {result && (
+        <div className="rounded-lg border border-emerald-200 bg-emerald-50/60 p-5">
+          <div className="mb-3 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-emerald-800">
+                ✅ {result.keys.length} keys created for {result.email}
+              </h3>
+              <p className="text-xs text-emerald-700">
+                Duration: {result.duration} · .txt file downloaded automatically
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => copy(result.keys.join("\n"), "all-bulk")}
+                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-neutral-100"
+              >
+                {copiedKey === "all-bulk" ? (
+                  <>
+                    <Check className="h-3.5 w-3.5 text-emerald-600" /> Copied all
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-3.5 w-3.5" /> Copy all
+                  </>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  const stamp = new Date().toISOString().slice(0, 10);
+                  const safeEmail = result.email.replace(/[^a-zA-Z0-9@._-]/g, "_");
+                  downloadTxt(result.keys, `unlimitly-keys-${safeEmail}-${stamp}.txt`);
+                }}
+                className="inline-flex items-center gap-1.5 rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium hover:bg-neutral-100"
+              >
+                <Download className="h-3.5 w-3.5" /> Re-download .txt
+              </button>
+            </div>
+          </div>
+
+          <div className="max-h-64 overflow-y-auto rounded-md border border-neutral-200 bg-white">
+            <table className="w-full text-left text-xs">
+              <tbody>
+                {result.keys.map((k, i) => (
+                  <tr key={k} className="border-b border-neutral-50 last:border-0 hover:bg-amber-50/40">
+                    <td className="w-10 px-3 py-1.5 text-neutral-400">{i + 1}</td>
+                    <td className="px-3 py-1.5">
+                      <code className="font-mono text-[11px] tracking-tight text-neutral-800">{k}</code>
+                    </td>
+                    <td className="w-10 px-3 py-1.5 text-right">
+                      <CopyButton value={k} id={`bulk-${k}`} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2 text-[11px] text-emerald-700">
+            <FileText className="h-3.5 w-3.5" />
+            Only you (admin) can download this file. The reseller will see the keys in their panel but cannot bulk-download.
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 

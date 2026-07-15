@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getUnlSupabase } from "@/lib/unl-supabase";
+import { Copy, Check, KeyRound, TrendingUp, Wallet } from "lucide-react";
 
 type KeyRow = {
   key: string;
@@ -15,6 +16,46 @@ type KeyRow = {
 };
 
 type ResellerInfo = { id: string; quota: number; keys_created: number; disabled: boolean };
+
+/* ---------- tiny copy hook ---------- */
+function useCopy() {
+  const [copiedKey, setCopiedKey] = useState<string | null>(null);
+  async function copy(text: string, id: string) {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedKey(id);
+      setTimeout(() => setCopiedKey(null), 1400);
+    } catch {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+      setCopiedKey(id);
+      setTimeout(() => setCopiedKey(null), 1400);
+    }
+  }
+  return { copiedKey, copy };
+}
+
+function CopyButton({ value, id }: { value: string; id: string }) {
+  const { copiedKey, copy } = useCopy();
+  const isCopied = copiedKey === id;
+  return (
+    <button
+      onClick={() => copy(value, id)}
+      title={isCopied ? "Copied!" : "Copy key"}
+      className={`grid h-7 w-7 place-items-center rounded-md border transition ${
+        isCopied
+          ? "border-emerald-300 bg-emerald-50 text-emerald-600"
+          : "border-neutral-200 bg-white text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"
+      }`}
+    >
+      {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+    </button>
+  );
+}
 
 export default function ResellerPage() {
   const supabase = getUnlSupabase();
@@ -70,7 +111,7 @@ export default function ResellerPage() {
 function Shell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-[#FBF7EC] px-6 py-10 font-sans text-neutral-900">
-      <div className="mx-auto max-w-5xl">{children}</div>
+      <div className="mx-auto max-w-6xl">{children}</div>
     </div>
   );
 }
@@ -166,7 +207,7 @@ function ResellerDashboard({
 
   function flash(msg: string) {
     setToast(msg);
-    setTimeout(() => setToast(null), 2200);
+    setTimeout(() => setToast(null), 2400);
   }
 
   async function createKey() {
@@ -205,6 +246,8 @@ function ResellerDashboard({
   }
 
   const remaining = me ? Math.max(0, me.quota - me.keys_created) : null;
+  const activeCount = keys.filter((k) => k.status === "active").length;
+  const unusedCount = keys.filter((k) => k.status === "unused").length;
 
   return (
     <Shell>
@@ -219,11 +262,6 @@ function ResellerDashboard({
           <p className="text-xs text-neutral-500">Signed in as {email}</p>
         </div>
         <div className="flex items-center gap-3">
-          {me && (
-            <span className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs">
-              <b>{me.keys_created}</b> used / <b>{me.quota}</b> quota · <b>{remaining}</b> left
-            </span>
-          )}
           <button
             onClick={load}
             className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm hover:bg-neutral-100"
@@ -250,6 +288,34 @@ function ResellerDashboard({
           Your reseller account is currently disabled. Contact admin.
         </div>
       )}
+
+      {/* ===== Summary cards ===== */}
+      <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <SummaryCard
+          icon={<Wallet className="h-4 w-4" />}
+          label="Quota"
+          value={me ? String(me.quota) : "—"}
+          tone="neutral"
+        />
+        <SummaryCard
+          icon={<KeyRound className="h-4 w-4" />}
+          label="Used"
+          value={me ? String(me.keys_created) : "—"}
+          tone="amber"
+        />
+        <SummaryCard
+          icon={<TrendingUp className="h-4 w-4" />}
+          label="Remaining"
+          value={remaining != null ? String(remaining) : "—"}
+          tone={remaining != null && remaining > 0 ? "green" : "red"}
+        />
+        <SummaryCard
+          icon={<KeyRound className="h-4 w-4" />}
+          label="Active keys"
+          value={String(activeCount)}
+          tone="green"
+        />
+      </div>
 
       <section className="space-y-6">
         <div className="rounded-lg border border-neutral-200 bg-white p-4">
@@ -286,10 +352,13 @@ function ResellerDashboard({
             <h2 className="text-sm font-semibold">
               Your clients <span className="text-neutral-400">({keys.length})</span>
             </h2>
+            <p className="mt-0.5 text-[11px] text-neutral-400">
+              {unusedCount} unused · {activeCount} active · {keys.length - unusedCount - activeCount} other
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-neutral-50 text-neutral-500">
+              <thead className="sticky top-0 bg-neutral-50 text-neutral-500">
                 <tr>
                   <th className="px-3 py-2 font-medium">Key</th>
                   <th className="px-3 py-2 font-medium">Duration</th>
@@ -316,9 +385,16 @@ function ResellerDashboard({
                   </tr>
                 )}
                 {keys.map((k) => (
-                  <tr key={k.key} className="border-t border-neutral-100">
-                    <td className="px-3 py-2 font-mono">{k.key}</td>
-                    <td className="px-3 py-2">{k.duration_type}</td>
+                  <tr key={k.key} className="border-t border-neutral-100 transition hover:bg-amber-50/40">
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1.5">
+                        <code className="rounded bg-neutral-100 px-1.5 py-0.5 font-mono text-[11px] tracking-tight text-neutral-800">
+                          {k.key}
+                        </code>
+                        <CopyButton value={k.key} id={k.key} />
+                      </div>
+                    </td>
+                    <td className="px-3 py-2 text-neutral-700">{k.duration_type}</td>
                     <td className="px-3 py-2">
                       <span
                         className={
@@ -335,9 +411,9 @@ function ResellerDashboard({
                         {k.status}
                       </span>
                     </td>
-                    <td className="px-3 py-2">{k.client_name || "—"}</td>
-                    <td className="px-3 py-2">{fmt(k.activated_at)}</td>
-                    <td className="px-3 py-2">{k.duration_type === "lifetime" ? "∞" : fmt(k.expires_at)}</td>
+                    <td className="px-3 py-2 text-neutral-700">{k.client_name || "—"}</td>
+                    <td className="px-3 py-2 text-neutral-600">{fmt(k.activated_at)}</td>
+                    <td className="px-3 py-2 text-neutral-600">{k.duration_type === "lifetime" ? "∞" : fmt(k.expires_at)}</td>
                     <td className="whitespace-nowrap px-3 py-2 text-right">
                       <div className="flex justify-end gap-1">
                         {k.status === "active" && (
@@ -364,8 +440,52 @@ function ResellerDashboard({
             </table>
           </div>
         </div>
+
+        <div className="rounded-lg border border-neutral-200 bg-amber-50/40 p-4">
+          <p className="text-xs text-neutral-600">
+            <strong className="text-neutral-800">Note:</strong> If your admin has created bulk keys for you,
+            they will appear in the table above. You can copy individual keys with the copy button,
+            but bulk .txt downloads are admin-only — contact your admin if you need a batch file.
+          </p>
+        </div>
       </section>
     </Shell>
+  );
+}
+
+function SummaryCard({
+  icon,
+  label,
+  value,
+  tone,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  tone: "neutral" | "amber" | "green" | "red";
+}) {
+  const tones = {
+    neutral: "border-neutral-200 bg-white text-neutral-900",
+    amber: "border-amber-200 bg-amber-50 text-amber-900",
+    green: "border-emerald-200 bg-emerald-50 text-emerald-900",
+    red: "border-red-200 bg-red-50 text-red-900",
+  };
+  const iconTones = {
+    neutral: "text-neutral-500",
+    amber: "text-amber-600",
+    green: "text-emerald-600",
+    red: "text-red-600",
+  };
+  return (
+    <div className={`rounded-lg border p-4 ${tones[tone]}`}>
+      <div className="mb-2 flex items-center gap-1.5">
+        <span className={iconTones[tone]}>{icon}</span>
+        <span className="text-[10px] font-medium uppercase tracking-wider text-neutral-500">{label}</span>
+      </div>
+      <div className="font-serif text-2xl italic" style={{ fontFamily: "'Instrument Serif', serif" }}>
+        {value}
+      </div>
+    </div>
   );
 }
 
