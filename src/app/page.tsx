@@ -19,6 +19,8 @@ import {
   TrendingUp,
   ChevronDown,
   Download,
+  Play,
+  X,
 } from "lucide-react";
 
 const WHATSAPP_URL =
@@ -26,6 +28,9 @@ const WHATSAPP_URL =
   encodeURIComponent(
     "Hi ProFlow Tools! I'm interested in Unlimitly Pro. Could you share pricing and next steps?"
   );
+
+const TUTORIAL_VIDEO_URL =
+  "https://github.com/IAAutomation/unlimitly/releases/download/v1.0.0/unlimitly-tutorial.mp4";
 
 /* ---------- primitives ---------- */
 
@@ -211,6 +216,9 @@ function Sparkline({ data, up = true }: { data: number[]; up?: boolean }) {
 
 export default function Home() {
   const [count, setCount] = useState(0);
+  const [openFaq, setOpenFaq] = useState(0);
+  const [videoOpen, setVideoOpen] = useState(false);
+
   useEffect(() => {
     let i = 0;
     const t = setInterval(() => {
@@ -224,7 +232,20 @@ export default function Home() {
     return () => clearInterval(t);
   }, []);
 
-  const [openFaq, setOpenFaq] = useState(0);
+  // Lock body scroll + ESC to close when video is open
+  useEffect(() => {
+    if (videoOpen) {
+      document.body.style.overflow = "hidden";
+      const onKey = (e: KeyboardEvent) => {
+        if (e.key === "Escape") setVideoOpen(false);
+      };
+      window.addEventListener("keydown", onKey);
+      return () => {
+        document.body.style.overflow = "";
+        window.removeEventListener("keydown", onKey);
+      };
+    }
+  }, [videoOpen]);
 
   const tools = [
     "Landing pages",
@@ -375,12 +396,15 @@ export default function Home() {
                 Download extension
                 <Download className="h-4 w-4 transition group-hover:translate-y-0.5" />
               </Link>
-              <a
-                href="#how"
-                className="inline-flex items-center gap-2 rounded-2xl border border-espresso/20 bg-butter px-6 py-4 text-sm font-semibold text-espresso transition hover:-translate-y-0.5 hover:border-gold hover:text-gold"
+              <button
+                onClick={() => setVideoOpen(true)}
+                className="group inline-flex items-center gap-2 rounded-2xl border border-espresso/20 bg-butter px-6 py-4 text-sm font-semibold text-espresso transition hover:-translate-y-0.5 hover:border-gold hover:text-gold"
               >
-                See how it works
-              </a>
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-espresso text-gold transition group-hover:bg-gold group-hover:text-espresso">
+                  <Play className="h-3 w-3 fill-current" />
+                </span>
+                How it works
+              </button>
             </div>
             <div className="mt-8 flex items-center gap-6 text-xs text-espresso/60">
               <div className="flex -space-x-2">
@@ -807,6 +831,87 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* ===== macOS-style video modal ===== */}
+      {videoOpen && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-8"
+          role="dialog"
+          aria-modal="true"
+          aria-label="How it works — tutorial video"
+        >
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-espresso/70 backdrop-blur-xl animate-[fadeIn_0.25s_ease-out]"
+            onClick={() => setVideoOpen(false)}
+          />
+
+          {/* macOS window — 3D perspective */}
+          <div
+            className="relative w-full max-w-5xl animate-[videoRise_0.45s_cubic-bezier(.2,.7,.2,1)_both]"
+            style={{ perspective: "1600px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              className="group relative overflow-hidden rounded-[18px] border border-white/10 bg-[#1d1d1f] shadow-[0_60px_120px_-20px_rgba(0,0,0,0.7),0_0_0_1px_rgba(255,255,255,0.04)] transition-transform duration-500"
+              style={{
+                transform: "rotateX(2.5deg) rotateY(-1.2deg)",
+                transformStyle: "preserve-3d",
+              }}
+            >
+              {/* Title bar — macOS traffic lights */}
+              <div className="relative flex items-center gap-2 border-b border-white/[0.06] bg-gradient-to-b from-[#2a2a2c] to-[#1d1d1f] px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="h-3 w-3 rounded-full bg-[#ff5f57] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.25)]" />
+                  <span className="h-3 w-3 rounded-full bg-[#febc2e] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.25)]" />
+                  <span className="h-3 w-3 rounded-full bg-[#28c840] shadow-[inset_0_0_0_0.5px_rgba(0,0,0,0.25)]" />
+                </div>
+                <div className="pointer-events-none absolute inset-x-0 flex justify-center">
+                  <span className="rounded-md bg-black/20 px-3 py-0.5 text-[11px] font-medium text-white/40">
+                    Unlimitly — How it works
+                  </span>
+                </div>
+                <button
+                  onClick={() => setVideoOpen(false)}
+                  className="ml-auto grid h-7 w-7 place-items-center rounded-md text-white/40 transition hover:bg-white/5 hover:text-white/80"
+                  aria-label="Close video"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+
+              {/* Video */}
+              <div className="relative bg-black" style={{ transform: "translateZ(40px)" }}>
+                <video
+                  src={TUTORIAL_VIDEO_URL}
+                  controls
+                  autoPlay
+                  playsInline
+                  className="block h-[55vh] max-h-[640px] w-full object-contain md:h-[68vh]"
+                  style={{ aspectRatio: "16 / 9" }}
+                />
+              </div>
+
+              {/* Glow accents */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-px rounded-[18px] opacity-60"
+                style={{
+                  background:
+                    "radial-gradient(600px 200px at 15% 0%, rgba(201,168,76,0.18), transparent 60%), radial-gradient(500px 200px at 85% 100%, rgba(240,215,140,0.12), transparent 60%)",
+                }}
+              />
+            </div>
+
+            {/* Floor reflection */}
+            <div
+              aria-hidden
+              className="mx-auto mt-2 h-12 w-3/4 rounded-[100%] opacity-40 blur-2xl"
+              style={{ background: "radial-gradient(ellipse at center, rgba(201,168,76,0.35), transparent 70%)" }}
+            />
+          </div>
+        </div>
+      )}
     </main>
   );
 }
